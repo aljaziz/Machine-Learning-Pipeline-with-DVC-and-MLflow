@@ -51,7 +51,7 @@ def train(data_path, model_path, random_state, n_estiamtors=None, max_depth=None
         grid_search = hyperparameter_tuning(X_train, y_train, param_grid)
         best_model = grid_search.best_estimator_
 
-        y_pred = best_model.predict(X_test, y_test)
+        y_pred = best_model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}")
 
@@ -71,21 +71,17 @@ def train(data_path, model_path, random_state, n_estiamtors=None, max_depth=None
         mlflow.log_text(str(cm), "confusion_matrix.txt")
         mlflow.log_text(cr, "classification_report.txt")
 
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+        # tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
-        if tracking_url_type_store != "file":
-            mlflow.sklearn.log_model(
-                best_model, "model", registered_model_name="Best Model"
-            )
-        else:
-            mlflow.sklearn.load_model(best_model, "model", signature=signature)
+        # mlflow.sklearn.log_model(best_model, "model", signature=signature)
 
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
         filename = model_path
         pickle.dump(best_model, open(filename, "wb"))
+        mlflow.log_artifacts("models", artifact_path="models")
         print(f"Model saved to {model_path}")
 
 
 if __name__ == "__main__":
-    train(params["data"], params["model"], params["random,_state"])
+    train(params["data"], params["model"], params["random_state"])
